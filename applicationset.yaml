@@ -16,7 +16,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: 'https://github.com/wanghongtao007/openshift-gitops-getting-started'
+        repoURL: 'https://github.com/wanghongtao007/cloudburst'
         targetRevision: HEAD
         path: app # 对应 Git 仓库中包含 auto-scale-test-deployment.yaml 的目录路径
       destination:
