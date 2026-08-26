@@ -122,3 +122,146 @@ spec:
           - CreateNamespace=true
 ```
 
+
+
+```
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: multi-cluster-app
+  namespace: user1-toolings
+spec:
+  generators:
+    - clusters:
+        # 匹配标签带 vendor: OpenShift 的目标集群
+        selector:
+          matchLabels:
+            vendor: OpenShift
+  template:
+    metadata:
+      name: 'my-app-{{name}}'
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com/wanghongtao007/cloudburst'
+        targetRevision: HEAD
+        path: app # 对应 Git 仓库中包含 auto-scale-test-deployment.yaml 的目录路径
+      destination:
+        server: '{{server}}'
+        namespace: autoscaling-poc # 统一部署到目标命名空间 autoscaling-poc
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+```
+
+
+
+```
+##查找集群标签
+oc get secrets -n user1-toolings -l argocd.argoproj.io/secret-type=cluster
+
+# 1. 为本地默认集群打标签
+oc label secret argocd-default-cluster-config -n user1-toolings name=in-cluster
+
+# 2. 为远端 ARO 集群打标签
+oc label secret cluster-api.iynoipaf.eastus.aroapp.io-1895598084 -n user1-toolings name=cluster-azure
+
+oc label node aro-cluster-277rm-clrtj-worker-eastus1-tpnlr node-role.kubernetes.io/autoscale-worker=''
+```
+
+deployment
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auto-scale-test
+  namespace: autoscaling-poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auto-scale-test
+  template:
+    metadata:
+      labels:
+        app: auto-scale-test
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/autoscale-worker: ''
+      containers:
+      - name: stress
+        image: vish/stress
+        args:
+        - -cpus
+        - "8"
+        - -mem-total
+        - "16Gi"
+        resources:
+          requests:
+            cpu: "8000m"
+            memory: "16Gi"
+          limits:
+            cpu: "8000m"
+            memory: "16Gi"
+```
+
+
+
+```
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: multi-cluster-app
+  namespace: user1-toolings
+spec:
+  generators:
+    # 集群 1：例如生产集群/主集群，配置 8 副本
+    - clusters:
+        selector:
+          matchLabels:
+            name: in-cluster # 或直接匹配 name: in-cluster
+        values:
+          replicas: "4"
+    
+    # 集群 2：例如测试集群/从集群，配置 2 副本
+    - clusters:
+        selector:
+          matchLabels:
+            name: cluster-azure    # 或直接匹配具体集群名
+        values:
+          replicas: "1"
+
+  template:
+    metadata:
+      name: 'my-app-{{name}}'
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com/wanghongtao007/cloudburst'
+        targetRevision: HEAD
+        path: app
+        # 核心：通过 Kustomize 的 overrides 动态覆写副本数
+        kustomize:
+          patches:
+            - target:
+                kind: Deployment
+                name: auto-scale-test
+              patch: |-
+                - op: replace
+                  path: /spec/replicas
+                  value: {{values.replicas}}
+      destination:
+        server: '{{server}}'
+        namespace: autoscaling-poc
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+```
+
