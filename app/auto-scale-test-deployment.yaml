@@ -20,13 +20,13 @@ spec:
         image: vish/stress
         args:
         - -cpus
-        - "8"
+        - "4"
         - -mem-total
-        - "16Gi"
+        - "8Gi"
         resources:
           requests:
-            cpu: "8000m"
-            memory: "16Gi"
+            cpu: "4000m"
+            memory: "8Gi"
           limits:
             cpu: "8000m"
             memory: "16Gi"
