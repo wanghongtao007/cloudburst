@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: multi-cluster-app
+  namespace: user1-toolings
+spec:
+  generators:
+    - clusters:
+        # 匹配标签带 vendor: OpenShift 的目标集群
+        selector:
+          matchLabels:
+            vendor: OpenShift
+  template:
+    metadata:
+      name: 'my-app-{{name}}'
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com/wanghongtao007/openshift-gitops-getting-started'
+        targetRevision: HEAD
+        path: app # 对应 Git 仓库中包含 auto-scale-test-deployment.yaml 的目录路径
+      destination:
+        server: '{{server}}'
+        namespace: autoscaling-poc # 统一部署到目标命名空间 autoscaling-poc
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
