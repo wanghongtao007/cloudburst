@@ -4,7 +4,7 @@ metadata:
   name: auto-scale-test
   namespace: autoscaling-poc
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: auto-scale-test
