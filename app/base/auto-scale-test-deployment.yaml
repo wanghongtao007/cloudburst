@@ -17,7 +17,7 @@ spec:
         node-role.kubernetes.io/autoscale-worker: ''
       containers:
       - name: stress
-        image: vish/stress
+        image: docker.io/vish/stress
         args:
         - -cpus
         - "4"
