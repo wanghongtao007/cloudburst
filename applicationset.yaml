@@ -5,21 +5,18 @@ metadata:
   namespace: user1-toolings
 spec:
   generators:
-    # 集群 1：例如生产集群/主集群，配置 8 副本
     - clusters:
         selector:
           matchLabels:
             name: in-cluster # 或直接匹配 name: in-cluster
         values:
-          replicas: “1”
-    
-    # 集群 2：例如测试集群/从集群，配置 2 副本
+          replicas: “2”
     - clusters:
         selector:
           matchLabels:
             name: cluster-azure    # 或直接匹配具体集群名
         values:
-          replicas: ”0“
+          replicas: ”1“
 
   template:
     metadata:
