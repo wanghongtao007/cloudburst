@@ -36,10 +36,11 @@ spec:
             - target:
                 kind: Deployment
                 name: auto-scale-test
+              type: json
               patch: |-
                 - op: replace
                   path: /spec/replicas
-                  value: {{values.replicas}}
+                  value: {{values.replicas | int}}
       destination:
         server: '{{server}}'
         namespace: autoscaling-poc
