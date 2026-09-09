@@ -28,7 +28,7 @@ spec:
       project: default
       source:
         repoURL: 'https://github.com/wanghongtao007/cloudburst'
-        targetRevision: HEAD
+        targetRevision: main
         path: app
         # 核心：通过 Kustomize 的 overrides 动态覆写副本数
         kustomize:
