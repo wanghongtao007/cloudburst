@@ -11,7 +11,7 @@ spec:
           matchLabels:
             name: in-cluster # 或直接匹配 name: in-cluster
         values:
-          replicas: "1"
+          replicas: 1
     
     # 集群 2：例如测试集群/从集群，配置 2 副本
     - clusters:
@@ -19,7 +19,7 @@ spec:
           matchLabels:
             name: cluster-azure    # 或直接匹配具体集群名
         values:
-          replicas: "0"
+          replicas: 0
 
   template:
     metadata:
