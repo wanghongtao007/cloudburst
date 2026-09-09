@@ -40,7 +40,7 @@ spec:
               patch: |-
                 - op: replace
                   path: /spec/replicas
-                  value: {{values.replicas | int}}
+                  value: {{values.replicas}}
       destination:
         server: '{{server}}'
         namespace: autoscaling-poc
