@@ -219,44 +219,31 @@ metadata:
   namespace: user1-toolings
 spec:
   generators:
-    # 集群 1：例如生产集群/主集群，配置 8 副本
     - clusters:
         selector:
-          matchLabels:
-            name: in-cluster # 或直接匹配 name: in-cluster
-        values:
-          replicas: "4"
-    
-    # 集群 2：例如测试集群/从集群，配置 2 副本
-    - clusters:
-        selector:
-          matchLabels:
-            name: cluster-azure    # 或直接匹配具体集群名
-        values:
-          replicas: "1"
-
+          matchExpressions:
+            - key: name
+              operator: In
+              values:
+                - in-cluster
+                - cluster-local
   template:
     metadata:
       name: 'my-app-{{name}}'
     spec:
+      destination:
+        namespace: autoscaling-poc
+        server: '{{server}}'
+      ignoreDifferences:
+        - group: apps
+          jsonPointers:
+            - /metadata/labels
+          kind: Deployment
       project: default
       source:
-        repoURL: 'https://github.com/wanghongtao007/cloudburst'
-        targetRevision: HEAD
-        path: app
-        # 核心：通过 Kustomize 的 overrides 动态覆写副本数
-        kustomize:
-          patches:
-            - target:
-                kind: Deployment
-                name: auto-scale-test
-              patch: |-
-                - op: replace
-                  path: /spec/replicas
-                  value: {{values.replicas}}
-      destination:
-        server: '{{server}}'
-        namespace: autoscaling-poc
+        path: 'app/overlays/{{name}}'
+        repoURL: 'https://github.com/wanghongtao007/cloudburst.git'
+        targetRevision: main
       syncPolicy:
         automated:
           prune: true
