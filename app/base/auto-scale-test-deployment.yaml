@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auto-scale-test
+  namespace: autoscaling-poc
+spec:
+  replicas: 0 # 默认基准副本数
+  selector:
+    matchLabels:
+      app: auto-scale-test
+  template:
+    metadata:
+      labels:
+        app: auto-scale-test
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/autoscale-worker: ''
+      containers:
+      - name: stress
+        image: vish/stress
+        args:
+        - -cpus
+        - "4"
+        - -mem-total
+        - "8Gi"
+        resources:
+          requests:
+            cpu: "4000m"
+            memory: "8Gi"
+          limits:
+            cpu: "8000m"
+            memory: "16Gi"
